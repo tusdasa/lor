@@ -1,5 +1,6 @@
 local sgmatch = string.gmatch
 local utils = require 'bin.scaffold.utils'
+local ffi = require("ffi")
 
 local gitignore = [[
 # lor
@@ -502,7 +503,6 @@ local function nginx_conf_content()
 end
 local ngx_conf_tpl = nginx_conf_content()
 
-
 local start_sh = [[
 #!/bin/sh
 
@@ -608,8 +608,16 @@ function Generator.create_files(parent)
 
         local full_file_path = parent .. '/' .. file_path
         local full_file_dirname = utils.dirname(full_file_path)
-        os.execute('mkdir -p ' .. full_file_dirname .. ' > /dev/null')
 
+	if ffi.os == "Windows" then
+	   -- 替换 `/` 为 `\`
+	   full_file_path = string.gsub(full_file_path,"/","\\")
+	   full_file_dirname = string.gsub(full_file_dirname,"/","\\")
+	   -- windows 下创建
+	   os.execute('md ' .. full_file_dirname)
+	else
+	   os.execute('mkdir -p ' .. full_file_dirname .. ' > /dev/null')
+	end
         local fw = io.open(full_file_path, 'w')
         fw:write(file_content)
         fw:close()

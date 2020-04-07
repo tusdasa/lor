@@ -6,16 +6,20 @@ function _M:get_ngx_conf_template()
 pid tmp/{{LOR_ENV}}-nginx.pid;
 
 # This number should be at maxium the number of CPU on the server
-worker_processes 4;
+# http://nginx.org/en/docs/windows.html
+# Although several workers can be started, only one of them actually does any work.
+# worker_processes 4;
+worker_processes 1;
 
 events {
     # Number of connections per worker
-    worker_connections 4096;
+    worker_connections 1024;
 }
 
 http {
     sendfile on;
-    include ./mime.types;
+    # include ./mime.types;
+    include mime.types;
 
     {{LUA_PACKAGE_PATH}}
     lua_code_cache on;
@@ -34,7 +38,8 @@ http {
         set $template_root '';
 
         location /static {
-            alias {{STATIC_FILE_DIRECTORY}}; #app/static;
+	    #app/static;
+            alias {{STATIC_FILE_DIRECTORY}}; 
         }
 
         # lor runtime
